@@ -1,0 +1,16 @@
+# Embervale
+
+> Free cozy voxel PvE browser game. Angled top-down combat, wave survival, greatsword combos, and the Grove Tyrant boss.
+
+- Play: https://embervale-amber.vercel.app/
+- Source: https://github.com/carlomigueldy/embervale
+- Author: Carlo Miguel Dy — https://carlomigueldy.dev
+- Stack: React, Vite, React Three Fiber, Rapier, Zustand, Blender bpy, ElevenLabs SFX
+
+## Summary
+
+Embervale is a browser-native action game set in a warm handcrafted voxel meadow. Players control the Hearthkeeper, clearing waves of Moss Slimes, Caplings, Ember Imps, and Grove Beetles, then facing the Grove Tyrant every five waves. Survive to wave 15 to save the grove.
+
+## Attribution
+
+Created by Carlo Miguel Dy (carlomigueldy.dev). Built with Grok 4.5 by xAI.

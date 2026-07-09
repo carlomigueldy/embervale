@@ -2,13 +2,168 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#2A3B2E" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="author" content="Carlo Miguel Dy" />
+    <meta name="creator" content="Carlo Miguel Dy" />
+    <meta name="publisher" content="carlomigueldy.dev" />
     <meta
       name="description"
-      content="Embervale — a cozy angled top-down voxel PvE adventure with waves, bosses, and handcrafted scenes."
+      content="Embervale is a free cozy voxel PvE browser game. Angled top-down combat, wave survival, two-handed sword combos, and the Grove Tyrant boss. Built by Carlo Miguel Dy."
     />
-    <title>Embervale</title>
+    <meta
+      name="keywords"
+      content="Embervale, cozy voxel game, browser game, free web game, top-down PvE, indie game, React Three Fiber, Rapier, wave survival, Carlo Miguel Dy"
+    />
+    <meta name="application-name" content="Embervale" />
+    <meta name="rating" content="General" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <title>Embervale — Cozy Voxel PvE Browser Game | carlomigueldy.dev</title>
+
+    <link rel="canonical" href="https://embervale-amber.vercel.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="author" href="https://carlomigueldy.dev" />
+    <link rel="me" href="https://carlomigueldy.dev" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Embervale" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://embervale-amber.vercel.app/" />
+    <meta property="og:title" content="Embervale — Cozy Voxel PvE Browser Game" />
+    <meta
+      property="og:description"
+      content="Free cozy voxel PvE in your browser. Survive waves, chain greatsword combos, and face the Grove Tyrant. By Carlo Miguel Dy."
+    />
+    <meta property="og:image" content="https://embervale-amber.vercel.app/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Embervale — cozy voxel grove PvE game by carlomigueldy.dev" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Embervale — Cozy Voxel PvE Browser Game" />
+    <meta
+      name="twitter:description"
+      content="Free cozy voxel PvE in your browser. Waves, combos, bosses. Built by Carlo Miguel Dy."
+    />
+    <meta name="twitter:image" content="https://embervale-amber.vercel.app/og.png" />
+    <meta name="twitter:image:alt" content="Embervale game cover" />
+    <meta name="twitter:creator" content="@carlomigueldy" />
+    <meta name="twitter:site" content="@carlomigueldy" />
+
+    <!-- JSON-LD: VideoGame + WebApplication + Person -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "VideoGame",
+            "@id": "https://embervale-amber.vercel.app/#game",
+            "name": "Embervale",
+            "alternateName": "Embervale Grove",
+            "description": "A cozy angled top-down voxel PvE browser game with wave survival, two-handed sword combos, and boss fights against the Grove Tyrant.",
+            "url": "https://embervale-amber.vercel.app/",
+            "image": "https://embervale-amber.vercel.app/og.png",
+            "genre": ["Action", "Adventure", "Indie", "PvE"],
+            "gamePlatform": ["Web Browser", "PC"],
+            "playMode": "SinglePlayer",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Any",
+            "browserRequirements": "Requires JavaScript and WebGL",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+              "url": "https://embervale-amber.vercel.app/"
+            },
+            "author": {
+              "@type": "Person",
+              "@id": "https://carlomigueldy.dev/#person",
+              "name": "Carlo Miguel Dy",
+              "url": "https://carlomigueldy.dev"
+            },
+            "creator": {
+              "@type": "Person",
+              "@id": "https://carlomigueldy.dev/#person"
+            },
+            "publisher": {
+              "@type": "Person",
+              "@id": "https://carlomigueldy.dev/#person"
+            },
+            "inLanguage": "en",
+            "keywords": "cozy voxel, browser game, top-down PvE, indie web game, wave survival"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://embervale-amber.vercel.app/#webapp",
+            "name": "Embervale",
+            "url": "https://embervale-amber.vercel.app/",
+            "applicationCategory": "GameApplication",
+            "operatingSystem": "Any",
+            "browserRequirements": "Requires JavaScript and WebGL",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@id": "https://carlomigueldy.dev/#person"
+            }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://carlomigueldy.dev/#person",
+            "name": "Carlo Miguel Dy",
+            "url": "https://carlomigueldy.dev",
+            "sameAs": [
+              "https://github.com/carlomigueldy",
+              "https://carlomigueldy.dev"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://embervale-amber.vercel.app/#website",
+            "url": "https://embervale-amber.vercel.app/",
+            "name": "Embervale",
+            "description": "Free cozy voxel PvE browser game by Carlo Miguel Dy.",
+            "publisher": {
+              "@id": "https://carlomigueldy.dev/#person"
+            },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://embervale-amber.vercel.app/#breadcrumb",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Carlo Miguel Dy",
+                "item": "https://carlomigueldy.dev"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Embervale",
+                "item": "https://embervale-amber.vercel.app/"
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,7 +172,22 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Crawlable fallback content for SEO / no-JS visitors -->
+    <noscript>
+      <main style="font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 1rem; color: #1c241c">
+        <h1>Embervale</h1>
+        <p>
+          Embervale is a free cozy voxel PvE browser game. Survive waves of wild spirits, chain
+          two-handed greatsword combos, and defeat the Grove Tyrant.
+        </p>
+        <p>
+          Enable JavaScript and WebGL to play.
+          Created by <a href="https://carlomigueldy.dev">Carlo Miguel Dy</a>
+          (<a href="https://carlomigueldy.dev">carlomigueldy.dev</a>).
+        </p>
+      </main>
+    </noscript>
+    <div id="root" role="application" aria-label="Embervale game"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

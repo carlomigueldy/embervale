@@ -6,6 +6,13 @@ import { updateAnimDriver, worldToLocalMove } from '../animation/locomotion'
 import { ARENA_HALF, PLAYER } from '../game/constants'
 import { useGameStore, uid } from '../game/store'
 import { runtime, pushVfx } from '../game/runtime'
+import {
+  getWorldSolids,
+  resolveAgainstSolids,
+  separateCircles,
+  clampToArena,
+} from '../game/collision'
+import { createSteerState, steerMob, type SteerState } from '../game/navigation'
 import { RiggedMob } from '../meshes/riggedMobs'
 import type { MobState, Projectile } from '../game/types'
 import { EnemyNameplate } from './EnemyNameplate'
@@ -19,6 +26,8 @@ type MobRuntimeFx = {
   windup: boolean
   /** Melee/special damage applied once per attack animation */
   hitDealt: boolean
+  /** Obstacle-aware chase state */
+  steer: SteerState
 }
 
 const mobFx = new Map<string, MobRuntimeFx>()
@@ -34,6 +43,7 @@ function getMobFx(id: string): MobRuntimeFx {
       prevZ: 0,
       windup: false,
       hitDealt: false,
+      steer: createSteerState(),
     }
     mobFx.set(id, fx)
   }
@@ -77,6 +87,7 @@ export function Mobs() {
     const [px, , pz] = runtime.playerPos
     // Prefer runtime, fall back to store (damage sets both)
     const playerInvuln = Math.max(runtime.playerInvuln, store.player.invuln)
+    const solids = getWorldSolids(store.seed)
     let playerHit = 0
     for (const mob of runtime.mobs) {
       if (!mob.alive) {
@@ -110,7 +121,6 @@ export function Mobs() {
       const dist = Math.hypot(dx, dz) || 0.0001
       const dirX = dx / dist
       const dirZ = dz / dist
-      const facing = Math.atan2(dirX, dirZ)
 
       let speed = mob.speed
       if (mob.isBoss) {
@@ -122,46 +132,101 @@ export function Mobs() {
       let z = mob.position[2]
       const stopDist = mob.radius + PLAYER.radius + (mob.isBoss ? 0.4 : 0.2)
       let moving = false
+      // Facing defaults toward player; steering may re-aim while detouring
+      let faceX = dirX
+      let faceZ = dirZ
 
       // hold still during attack windup/strike
       const attacking = fx.attackTimer > 0
       if (!attacking && dist > stopDist) {
-        x += dirX * speed * dt
-        z += dirZ * speed * dt
-        moving = true
+        // Obstacle-aware chase: re-route around trees/rocks/cottage/pond
+        const stepped = steerMob(
+          x,
+          z,
+          px,
+          pz,
+          mob.radius,
+          speed,
+          dt,
+          solids,
+          fx.steer,
+        )
+        x = stepped.x
+        z = stepped.z
+        faceX = stepped.faceX
+        faceZ = stepped.faceZ
+        moving = stepped.moving
+      } else if (!attacking) {
+        // In melee range — clear stuck/detour so next chase is fresh
+        fx.steer.stuck = 0
+        fx.steer.wLife = 0
       }
 
-      // occasional side-step strafe for imps/beetles
-      if (!attacking && (mob.kind === 'imp' || mob.kind === 'beetle') && dist < 8 && Math.random() < 0.01) {
+      // occasional side-step strafe for imps/beetles (only if not deep in a detour)
+      if (
+        !attacking &&
+        fx.steer.wLife <= 0 &&
+        (mob.kind === 'imp' || mob.kind === 'beetle') &&
+        dist < 8 &&
+        Math.random() < 0.01
+      ) {
         const side = Math.random() > 0.5 ? 1 : -1
         x += -dirZ * side * speed * 1.4 * dt * 8
         z += dirX * side * speed * 1.4 * dt * 8
         moving = true
       }
 
-      // separation
+      // Mob ↔ mob separation (soft)
       for (const other of runtime.mobs) {
         if (!other.alive || other.id === mob.id) continue
-        const ox = x - other.position[0]
-        const oz = z - other.position[2]
-        const d = Math.hypot(ox, oz)
-        const min = mob.radius + other.radius * 0.85
-        if (d > 0 && d < min) {
-          const push = (min - d) * 0.35
-          x += (ox / d) * push
-          z += (oz / d) * push
-        }
+        const sep = separateCircles(
+          x,
+          z,
+          mob.radius,
+          other.position[0],
+          other.position[2],
+          other.radius * 0.9,
+          0.55,
+        )
+        x += sep.dax
+        z += sep.daz
       }
 
-      const limit = ARENA_HALF - 1.4
-      x = THREE.MathUtils.clamp(x, -limit, limit)
-      z = THREE.MathUtils.clamp(z, -limit, limit)
+      // Soft body-block vs player (player dash is handled on player side)
+      {
+        const sep = separateCircles(
+          x,
+          z,
+          mob.radius,
+          px,
+          pz,
+          PLAYER.radius,
+          0.35,
+        )
+        x += sep.dax
+        z += sep.daz
+      }
+
+      // Final resolve so separation doesn't bury them in props
+      const against = resolveAgainstSolids(x, z, mob.radius, solids, 1)
+      x = against.x
+      z = against.z
+
+      const clamped = clampToArena(x, z, 1.4)
+      x = clamped.x
+      z = clamped.z
 
       const vx = (x - mob.position[0]) / Math.max(dt, 1e-4)
       const vz = (z - mob.position[2]) / Math.max(dt, 1e-4)
       mob.position[0] = x
       mob.position[1] = 0
       mob.position[2] = z
+
+      // Face movement when detouring; face player when in range / attacking
+      const facing =
+        attacking || dist <= stopDist + 0.4
+          ? Math.atan2(dirX, dirZ)
+          : Math.atan2(faceX, faceZ)
 
       const g = groupRefs.current.get(mob.id)
       if (g) {
@@ -328,6 +393,21 @@ export function Mobs() {
           life: 0.2,
           maxLife: 0.2,
           scale: 0.7,
+          kind: 'hit',
+        })
+        continue
+      }
+
+      // Projectiles die on solid props (trees/rocks/cottage)
+      const hitSolid = solids.some((s) => Math.hypot(nx - s.x, nz - s.z) < s.r + p.radius * 0.6)
+      if (hitSolid) {
+        pushVfx({
+          id: uid('vfx'),
+          position: [nx, 0.7, nz],
+          color: '#d0a0e8',
+          life: 0.18,
+          maxLife: 0.18,
+          scale: 0.5,
           kind: 'hit',
         })
         continue

@@ -1,0 +1,20 @@
+{
+  "name": "Embervale",
+  "short_name": "Embervale",
+  "description": "Cozy voxel PvE browser game by Carlo Miguel Dy — waves, combos, bosses.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1C241C",
+  "theme_color": "#2A3B2E",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

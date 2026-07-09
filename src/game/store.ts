@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { PLAYER, WAVE } from './constants'
 import { runtime } from './runtime'
+import { audio } from '../audio/audio'
+import { getWorldSolids, resolveAgainstSolids, clampToArena } from './collision'
 import type {
   FloatingDamage,
   GamePhase,
@@ -50,8 +52,14 @@ function xpToLevel(level: number) {
   return 40 + (level - 1) * 28
 }
 
-function spawnPoint(angle: number, radius: number): [number, number, number] {
-  return [Math.cos(angle) * radius, 0.55, Math.sin(angle) * radius]
+function spawnPoint(angle: number, radius: number, seed = 0): [number, number, number] {
+  // Soft-resolve out of world props so waves don't spawn inside trees/rocks
+  let x = Math.cos(angle) * radius
+  let z = Math.sin(angle) * radius
+  const solids = getWorldSolids(seed)
+  const fixed = resolveAgainstSolids(x, z, 0.7, solids, 1)
+  const clamped = clampToArena(fixed.x, fixed.z, 1.6)
+  return [clamped.x, 0.55, clamped.z]
 }
 
 function createMob(kind: MobKind, position: [number, number, number], wave: number): MobState {
@@ -155,6 +163,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     runtime.vfx = []
     runtime.levelUpFx = 0
     runtime.mobVersion++
+    audio.unlock()
+    audio.ambient('ambient-grove')
+    audio.play('wave-start', { volume: 0.8 })
     set({
       phase: 'playing',
       wave: 1,
@@ -226,13 +237,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   spawnWave: (wave) => {
     const count = Math.round(WAVE.baseMobCount + (wave - 1) * WAVE.mobCountPerWave)
+    const seed = get().seed
     const mobs: MobState[] = []
     for (let i = 0; i < count; i++) {
       const kind = MOB_KINDS[Math.floor(Math.random() * MOB_KINDS.length)]!
       const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4
       const radius =
         WAVE.spawnRadiusMin + Math.random() * (WAVE.spawnRadiusMax - WAVE.spawnRadiusMin)
-      const pos = spawnPoint(angle, radius)
+      const pos = spawnPoint(angle, radius, seed)
       mobs.push(createMob(kind, pos, wave))
     }
     const next = [...get().mobs.filter((m) => m.alive), ...mobs]
@@ -253,7 +265,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   spawnBoss: (wave) => {
-    const boss = createMob('boss', spawnPoint(-Math.PI / 2, 12), wave)
+    const boss = createMob('boss', spawnPoint(-Math.PI / 2, 12, get().seed), wave)
     const next = [...get().mobs.filter((m) => m.alive && !m.isBoss), boss]
     runtime.mobs = next.map((m) => ({ ...m, position: [...m.position] as [number, number, number] }))
     runtime.mobVersion++
@@ -272,6 +284,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       banner: 'Boss — Grove Tyrant',
       bannerKey: Date.now(),
     })
+    audio.play('boss-roar', { volume: 0.95 })
     get().addToast('The Grove Tyrant awakens!', 'damage')
   },
 
@@ -364,8 +377,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         invuln,
       },
     })
+    audio.play('player-hurt', { volume: 0.75, rate: 0.95 + Math.random() * 0.1 })
     get().addToast(`-${amount} HP`, 'damage')
     if (hp <= 0) {
+      audio.play('defeat', { volume: 0.9 })
       set({ phase: 'dead', banner: 'You fell in the grove…' })
     }
   },
@@ -390,6 +405,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
       ],
     })
+    audio.play('heal', { volume: 0.55 })
     get().addToast(`+${gained} HP`, 'heal')
   },
 
@@ -443,6 +459,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           maxLife: 2.8,
         },
       })
+      audio.play('level-up', { volume: 0.9 })
       get().addToast(
         levelsGained > 1
           ? `Level up! ×${levelsGained} → Lv ${level}`
@@ -502,6 +519,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       banner: isBoss ? 'Something stirs…' : `Wave ${next}`,
       bannerKey: Date.now(),
     })
+    if (!isBoss) {
+      audio.play('wave-start', { volume: 0.75 })
+    }
     if (isBoss) {
       window.setTimeout(() => {
         if (get().phase === 'bossIntro' || get().phase === 'playing') {
@@ -519,6 +539,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const alive = s.mobs.some((m) => m.alive)
     if (alive) return
     if (s.wave >= 15 && s.wave % WAVE.bossEvery === 0) {
+      audio.play('victory', { volume: 0.95 })
       set({ phase: 'victory', banner: 'Embervale is safe' })
       return
     }
