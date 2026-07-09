@@ -29,11 +29,11 @@ function Scene() {
       <Lighting />
       <CameraRig />
 
-      <WorldProps seed={seed} />
-
       <Suspense fallback={null}>
         <Physics gravity={[0, -9.81, 0]} timeStep="vary" paused={phase === 'title'}>
           <Terrain seed={seed} />
+          {/* Props live inside Physics so fixed colliders register */}
+          <WorldProps seed={seed} />
           {phase !== 'title' && (
             <>
               <Player />

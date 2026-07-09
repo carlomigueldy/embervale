@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useGameStore, getXpProgress } from '../game/store'
 import { WAVE } from '../game/constants'
 import { runtime } from '../game/runtime'
+import { audio } from '../audio/audio'
 
 /** Classic MMO unit-frame bar (HP / XP / boss) */
 function UnitBar({
@@ -257,10 +258,45 @@ export function HUD() {
                 <strong>Goal</strong> — Survive to wave 15
               </div>
             </div>
-            <button type="button" className="btn-primary" onClick={startGame}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                audio.unlock()
+                audio.play('ui-select', { volume: 0.7 })
+                startGame()
+              }}
+            >
               Enter the Grove
             </button>
+            <p className="title-attribution">
+              A game by{' '}
+              <a
+                href="https://carlomigueldy.dev"
+                target="_blank"
+                rel="noopener noreferrer author"
+                className="title-attribution-link"
+              >
+                Carlo Miguel Dy
+              </a>
+              <span className="title-attribution-sep">·</span>
+              <a
+                href="https://carlomigueldy.dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="title-attribution-link"
+              >
+                carlomigueldy.dev
+              </a>
+            </p>
           </div>
+          <footer className="site-credit" role="contentinfo">
+            <span>Built with React · R3F · Rapier · ElevenLabs SFX</span>
+            <span aria-hidden>·</span>
+            <a href="https://carlomigueldy.dev" target="_blank" rel="noopener noreferrer">
+              carlomigueldy.dev
+            </a>
+          </footer>
         </div>
       </div>
     )
@@ -299,6 +335,16 @@ export function HUD() {
           Chain clicks for combos · Shift dash
         </div>
 
+        <a
+          className="hud-credit"
+          href="https://carlomigueldy.dev"
+          target="_blank"
+          rel="noopener noreferrer author"
+          title="Made by Carlo Miguel Dy"
+        >
+          carlomigueldy.dev
+        </a>
+
         <div className="toast-stack">
           {toasts.map((t) => (
             <div key={t.id} className={`toast ${t.kind}`}>
@@ -315,14 +361,34 @@ export function HUD() {
             <p>
               Wave {wave} · {player.kills} spirits calmed. The grove will wait for another try.
             </p>
-            <button type="button" className="btn-primary" onClick={startGame}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                audio.play('ui-select', { volume: 0.65 })
+                startGame()
+              }}
+            >
               Rise again
             </button>
             <div>
-              <button type="button" className="btn-ghost" onClick={returnToTitle}>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  audio.play('ui-select', { volume: 0.55 })
+                  returnToTitle()
+                }}
+              >
                 Back to title
               </button>
             </div>
+            <p className="overlay-credit">
+              by{' '}
+              <a href="https://carlomigueldy.dev" target="_blank" rel="noopener noreferrer">
+                carlomigueldy.dev
+              </a>
+            </p>
           </div>
         </div>
       )}
@@ -335,14 +401,34 @@ export function HUD() {
               You cleared {wave} waves with {player.kills} spirits laid to rest. The lanterns burn
               warm again.
             </p>
-            <button type="button" className="btn-primary" onClick={startGame}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                audio.play('ui-select', { volume: 0.65 })
+                startGame()
+              }}
+            >
               Play again
             </button>
             <div>
-              <button type="button" className="btn-ghost" onClick={returnToTitle}>
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  audio.play('ui-select', { volume: 0.55 })
+                  returnToTitle()
+                }}
+              >
                 Back to title
               </button>
             </div>
+            <p className="overlay-credit">
+              by{' '}
+              <a href="https://carlomigueldy.dev" target="_blank" rel="noopener noreferrer">
+                carlomigueldy.dev
+              </a>
+            </p>
           </div>
         </div>
       )}

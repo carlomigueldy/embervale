@@ -10,7 +10,9 @@
     "preview": "vite preview --port 2035 --host",
     "typecheck": "tsc -b --pretty",
     "lint": "oxlint",
-    "assets:generate": "blender --background --python tools/blender/generate_assets.py"
+    "gate": "npm run typecheck && npm run lint && npm run build",
+    "assets:generate": "blender --background --python tools/blender/generate_assets.py",
+    "sfx:generate": "node tools/audio/generate-sfx.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

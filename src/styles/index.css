@@ -244,6 +244,94 @@ button:focus-visible {
   box-shadow: 0 2px 0 var(--ember-deep);
 }
 
+.title-attribution {
+  margin: 18px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.title-attribution-link {
+  color: var(--moss-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 800;
+}
+
+.title-attribution-link:hover {
+  color: var(--ember-deep);
+}
+
+.title-attribution-sep {
+  margin: 0 0.4em;
+  opacity: 0.55;
+}
+
+.site-credit {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  max-width: calc(100vw - 24px);
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(247, 240, 228, 0.78);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.site-credit a {
+  color: var(--gold-hot);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.site-credit a:hover {
+  color: #fff;
+}
+
+.hud-credit {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 5;
+  padding: 4px 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: rgba(247, 240, 228, 0.72);
+  text-decoration: none;
+  background: rgba(28, 36, 28, 0.45);
+  border: 2px solid rgba(42, 59, 46, 0.7);
+  pointer-events: auto;
+}
+
+.hud-credit:hover {
+  color: var(--gold-hot);
+  border-color: var(--gold);
+}
+
+.overlay-credit {
+  margin: 14px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.overlay-credit a {
+  color: var(--moss-deep);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .btn-ghost {
   margin-top: 12px;
   color: var(--ink-soft);

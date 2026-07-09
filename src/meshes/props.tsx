@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { RigidBody, CylinderCollider, CuboidCollider } from '@react-three/rapier'
 import { COLORS } from '../game/constants'
 import { InstancedVoxels, mulberry32, type Voxel } from './voxel'
 
@@ -266,6 +267,28 @@ export function WorldProps({ seed }: { seed: number }) {
   )
 }
 
+/** Rapier fixed colliders for major solids (kinematic player still uses soft resolve). */
+function PropCollider({ kind }: { kind: PropInstance['kind'] }) {
+  switch (kind) {
+    case 'tree':
+      return <CylinderCollider args={[1.2, 0.55]} position={[0, 1.2, 0]} />
+    case 'rock':
+      return <CylinderCollider args={[0.35, 0.45]} position={[0, 0.35, 0]} />
+    case 'lantern':
+      return <CylinderCollider args={[0.55, 0.25]} position={[0, 0.55, 0]} />
+    case 'fence':
+      return <CuboidCollider args={[0.55, 0.45, 0.18]} position={[0, 0.45, 0]} />
+    case 'mushroom':
+      return <CylinderCollider args={[0.25, 0.26]} position={[0, 0.25, 0]} />
+    case 'shrine':
+      return <CylinderCollider args={[1.1, 0.8]} position={[0, 1.1, 0]} />
+    case 'cottage':
+      return <CuboidCollider args={[1.5, 1.2, 1.5]} position={[0, 1.2, 0]} />
+    default:
+      return null
+  }
+}
+
 function PropMesh({ prop }: { prop: PropInstance }) {
   const voxels = useMemo(() => {
     switch (prop.kind) {
@@ -288,8 +311,15 @@ function PropMesh({ prop }: { prop: PropInstance }) {
     }
   }, [prop])
 
+  const solid = prop.kind !== 'flower'
+
   return (
     <group position={prop.position} rotation={[0, prop.rotation ?? 0, 0]}>
+      {solid ? (
+        <RigidBody type="fixed" colliders={false}>
+          <PropCollider kind={prop.kind} />
+        </RigidBody>
+      ) : null}
       <InstancedVoxels voxels={voxels} castShadow={prop.kind !== 'flower'} />
       {prop.kind === 'lantern' && (
         <pointLight

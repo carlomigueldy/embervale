@@ -12,9 +12,16 @@ import {
 } from '../animation/combatAttacks'
 import { createAnimDriver } from '../animation/types'
 import { updateAnimDriver, worldToLocalMove } from '../animation/locomotion'
-import { ARENA_HALF, PLAYER } from '../game/constants'
+import { PLAYER } from '../game/constants'
 import { useGameStore, uid } from '../game/store'
 import { runtime, pushVfx } from '../game/runtime'
+import {
+  getWorldSolids,
+  resolveAgainstSolids,
+  separateCircles,
+  clampToArena,
+} from '../game/collision'
+import { audio } from '../audio/audio'
 import { RiggedPlayer } from '../meshes/riggedPlayer'
 
 const up = new THREE.Vector3(0, 1, 0)
@@ -221,6 +228,7 @@ export function Player() {
       c.dashTimer = PLAYER.dashDuration
       c.dash = PLAYER.dashCooldown
       c.invuln = Math.max(c.invuln, PLAYER.dashDuration + 0.05)
+      audio.play('dash', { volume: 0.75, rate: 0.95 + Math.random() * 0.1 })
       pushVfx({
         id: uid('vfx'),
         position: [t.x, 0.3, t.z],
@@ -252,15 +260,48 @@ export function Player() {
 
     let nx = t.x + vx * dt
     let nz = t.z + vz * dt
-    const limit = ARENA_HALF - 1.2
-    nx = THREE.MathUtils.clamp(nx, -limit, limit)
-    nz = THREE.MathUtils.clamp(nz, -limit, limit)
+
+    // World props + hedges + pond
+    const solids = getWorldSolids(store.seed)
+    const againstWorld = resolveAgainstSolids(nx, nz, PLAYER.radius, solids, 1)
+    nx = againstWorld.x
+    nz = againstWorld.z
+
+    // Soft body-block vs living mobs (dash slips through)
+    if (c.dashTimer <= 0) {
+      for (const mob of runtime.mobs) {
+        if (!mob.alive) continue
+        const sep = separateCircles(
+          nx,
+          nz,
+          PLAYER.radius,
+          mob.position[0],
+          mob.position[2],
+          mob.radius * 0.92,
+          0.72,
+        )
+        nx += sep.dax
+        nz += sep.daz
+        // Nudge mob slightly so stacks don't pin the player
+        mob.position[0] += sep.dbx * 0.55
+        mob.position[2] += sep.dbz * 0.55
+      }
+      // Re-resolve props after mob push
+      const again = resolveAgainstSolids(nx, nz, PLAYER.radius, solids, 1)
+      nx = again.x
+      nz = again.z
+    }
+
+    const clamped = clampToArena(nx, nz, 1.2)
+    nx = clamped.x
+    nz = clamped.z
 
     rb.setNextKinematicTranslation({ x: nx, y: 0.55, z: nz })
     rb.setNextKinematicRotation(new THREE.Quaternion().setFromAxisAngle(up, facing))
 
-    // foot dust
+    // foot dust + soft steps
     const moveSpeed = Math.hypot(vx, vz)
+    audio.tickFootstep(dt, c.dashTimer > 0 ? 0 : moveSpeed)
     dustAcc.current += dt * (c.dashTimer > 0 ? 3 : moveSpeed > 1 ? 1 : 0)
     if (dustAcc.current > 0.12 && moveSpeed > 2) {
       dustAcc.current = 0
@@ -399,6 +440,10 @@ function startAttack(c: CombatState, id: AttackId, comboStep: number) {
   c.comboTimer = def.duration + COMBO_RESET
   c.hitDealt = false
   c.bufferChain = false
+  audio.play('sword-swing', {
+    volume: 0.55 + comboStep * 0.08,
+    rate: 0.92 + comboStep * 0.04 + Math.random() * 0.08,
+  })
 }
 
 function updateSlashArc(
@@ -509,6 +554,23 @@ function performMeleeAttack(
     const kb = (0.5 + (mob.isBoss ? 0.12 : 0.32)) * def.knockbackMul
     mob.position[0] += Math.sin(facing) * kb
     mob.position[2] += Math.cos(facing) * kb
+    // Keep knockback from burying mobs inside props
+    const solids = getWorldSolids(store.seed)
+    const fixed = resolveAgainstSolids(
+      mob.position[0],
+      mob.position[2],
+      mob.radius,
+      solids,
+      1,
+    )
+    const arena = clampToArena(fixed.x, fixed.z, 1.4)
+    mob.position[0] = arena.x
+    mob.position[2] = arena.z
+
+    audio.play('sword-hit', {
+      volume: 0.7 + comboStep * 0.05,
+      rate: 0.95 + Math.random() * 0.12,
+    })
 
     pushVfx({
       id: uid('vfx'),
@@ -522,6 +584,10 @@ function performMeleeAttack(
 
     if (mob.hp <= 0) {
       mob.alive = false
+      audio.play(mob.isBoss ? 'boss-roar' : 'mob-death', {
+        volume: mob.isBoss ? 0.9 : 0.65,
+        rate: 0.95 + Math.random() * 0.1,
+      })
       pushVfx({
         id: uid('vfx'),
         position: [...mob.position] as [number, number, number],
@@ -537,9 +603,11 @@ function performMeleeAttack(
 
       if (mob.isBoss) {
         store.healPlayer(30)
+        audio.play('heal', { volume: 0.7 })
         if (store.wave >= 15) {
           store.setPhase('victory')
           store.setBanner('Embervale is safe')
+          audio.play('victory', { volume: 0.95 })
         }
       }
 
