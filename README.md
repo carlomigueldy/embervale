@@ -2,8 +2,7 @@
 
 **A cozy angled top-down voxel PvE grove — waves, combos, bosses, and handcrafted scenes.**
 
-Play live → **[embervale.vercel.app](https://embervale.vercel.app)**  
-*(production URL is set after first deploy; if this 404s briefly, check the repo homepage / Vercel dashboard.)*
+**Play live → [embervale-amber.vercel.app](https://embervale-amber.vercel.app)**
 
 ---
 
